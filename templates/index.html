@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рекомендации книг</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Рекомендации книг</h1>
+        <div class="row">
+            <!-- Список книг -->
+            <div class="col-md-8">
+                <h2>Список книг</h2>
+                <ul class="list-group">
+                    {% for book in books %}
+                        <li class="list-group-item">
+                            <h5>{{ book.title }} <small>({{ book.genre }})</small></h5>
+                            <p>Автор: {{ book.author }}</p>
+                            <p>Рейтинг: {{ book.rating }}</p>
+                            <button class="btn btn-danger btn-sm" onclick="deleteBook({{ book.id }})">Удалить</button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <!-- Форма добавления книг -->
+            <div class="col-md-4">
+                <h2>Добавить книгу</h2>
+                <form id="addBookForm">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Название</label>
+                        <input type="text" id="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="author" class="form-label">Автор</label>
+                        <input type="text" id="author" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="genre" class="form-label">Жанр</label>
+                        <input type="text" id="genre" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Форма добавления книги
+        document.getElementById('addBookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const genre = document.getElementById('genre').value;
+
+            const response = await fetch('/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title, author, genre }),
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка при добавлении книги');
+            }
+        });
+
+        // Удаление книги
+        async function deleteBook(bookId) {
+            const response = await fetch(`/delete/${bookId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении книги');
+            }
+        }
+    </script>
+</body>
+</html>
