@@ -6,3 +6,5 @@ casualdoto - Хрестьяновский Даниил
 Tonya-Lyub - Антонина Любецкая
 
 shmel9va - Шмелева Мария
+
+Протестировать проект можно по этой ссылке: https://test-5avk.onrender.com
