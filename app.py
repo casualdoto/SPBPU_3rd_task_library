@@ -42,3 +42,5 @@ if __name__ == '__main__':
     with app.app_context():  # Создание контекста приложения
         db.create_all()      # Создание всех таблиц
     app.run(debug=True)
+
+
