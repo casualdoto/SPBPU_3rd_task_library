@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Рекомендации книг</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Подключение jQuery и jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.css">
 </head>
 <body>
     <div class="container mt-5">
@@ -42,33 +46,76 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Добавить</button>
                 </form>
+                <script>
+                    $(function () {
+                        let genreSelected = false; // Флаг для проверки выбора жанра
+
+                        // Автозаполнение для поля "Жанр"
+                        $("#genre").autocomplete({
+                            source: function (request, response) {
+                                $.ajax({
+                                    url: "/genres",
+                                    dataType: "json",
+                                    data: {
+                                        q: request.term
+                                    },
+                                    success: function (data) {
+                                        response(data);
+                                    }
+                                });
+                            },
+                            minLength: 0, // Минимальная длина ввода перед показом подсказок
+                            select: function (event, ui) {
+                                genreSelected = true; // Устанавливаем флаг, если выбран жанр из списка
+                            }
+                        });
+
+                        // Показывать подсказку при фокусе
+                        $("#genre").on("focus", function () {
+                            $(this).autocomplete("search", ""); // Программный запуск подсказки
+                        });
+
+                        // Очистка поля жанра, если пользователь не выбрал вариант
+                        $("#genre").on("blur", function () {
+                            if (!genreSelected) {
+                                $(this).val(""); // Очищаем поле, если жанр не выбран
+                            }
+                            genreSelected = false; // Сбрасываем флаг
+                        });
+                    });
+
+                    // Отправка данных формы на сервер
+                    document.getElementById('addBookForm').addEventListener('submit', async (event) => {
+                        event.preventDefault();
+
+                        const title = document.getElementById('title').value;
+                        const author = document.getElementById('author').value;
+                        const genre = document.getElementById('genre').value;
+
+                        if (!genre) {
+                            alert("Пожалуйста, выберите жанр из списка!");
+                            return;
+                        }
+
+                        const response = await fetch('/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ title, author, genre })
+                        });
+
+                        if (response.ok) {
+                            alert('Книга добавлена!');
+                            window.location.reload();
+                        } else {
+                            alert('Ошибка при добавлении книги.');
+                        }
+                    });
+                </script>
             </div>
         </div>
     </div>
 
     <script>
-        // Форма добавления книги
-        document.getElementById('addBookForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const title = document.getElementById('title').value;
-            const author = document.getElementById('author').value;
-            const genre = document.getElementById('genre').value;
-
-            const response = await fetch('/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ title, author, genre }),
-            });
-
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Ошибка при добавлении книги');
-            }
-        });
-
         // Удаление книги
         async function deleteBook(bookId) {
             const response = await fetch(`/delete/${bookId}`, {
