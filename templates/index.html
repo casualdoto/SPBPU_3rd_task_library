@@ -9,6 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.css">
+
 </head>
 <body>
     <div class="container mt-5">
@@ -20,9 +21,20 @@
                 <ul class="list-group">
                     {% for book in books %}
                         <li class="list-group-item">
-                            <h5>{{ book.title }} <small>({{ book.genre }})</small></h5>
+                            <h5>
+                                <a href="/book/{{ book.id }}" class="text-decoration-none">{{ book.title }}</a>
+                                <small>({{ book.genre }})</small>
+                            </h5>
+                            
                             <p>Автор: {{ book.author }}</p>
-                            <p>Рейтинг: {{ book.rating }}</p>
+                            <p>
+                                <strong>Рейтинг:</strong> 
+                                {% if book.reviews %}
+                                    {{ book.rating | round(2) }}
+                                {% else %}
+                                    Нет рейтинга
+                                {% endif %}
+                            </p>
                             <button class="btn btn-danger btn-sm" onclick="deleteBook({{ book.id }})">Удалить</button>
                         </li>
                     {% endfor %}
@@ -129,5 +141,13 @@
             }
         }
     </script>
+    <script>
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload(); // Перезагрузка страницы при возвращении
+            }
+        });
+    </script>
+
 </body>
 </html>

@@ -13,6 +13,17 @@ class Book(db.Model):
     genre = db.Column(db.String(50), nullable=False)
     rating = db.Column(db.Float, default=0.0)
 
+class BookReview(db.Model):
+    __tablename__ = 'book_reviews'  # Имя таблицы
+    id_review = db.Column(db.Integer, primary_key=True)  # Первичный ключ
+    review = db.Column(db.Text, nullable=False)  # Отзыв о книге
+    grade = db.Column(db.Float, nullable=False)  # Оценка книги
+    id_book = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)  # Внешний ключ
+
+    # Отношение между таблицами
+    book = db.relationship('Book', backref=db.backref('reviews', lazy=True))
+
+
 # Главная страница
 @app.route('/')
 def index():
@@ -146,6 +157,40 @@ def delete_book(book_id):
         db.session.commit()
         return jsonify({"message": "Книга удалена!"})
     return jsonify({"error": "Книга не найдена"}), 404
+
+# Переход в раздел информации о книге
+@app.route('/book/<int:book_id>', methods=['GET'])
+def book_details(book_id):
+    book = Book.query.get_or_404(book_id)  # Получаем книгу по ID
+    return render_template('book_details.html', book=book)
+
+# Добавление отзыва
+@app.route('/add_review', methods=['POST'])
+def add_review():
+    data = request.json
+    review = data.get('review')
+    grade = data.get('grade')
+    id_book = data.get('id_book')
+
+    # Проверка данных
+    if not review or not grade or not id_book:
+        return jsonify({'error': 'Все поля обязательны'}), 400
+
+    # Добавляем новый отзыв
+    new_review = BookReview(review=review, grade=float(grade), id_book=id_book)
+    db.session.add(new_review)
+
+    # Пересчитываем средний рейтинг книги
+    book = Book.query.get(id_book)
+    reviews = BookReview.query.filter_by(id_book=id_book).all()
+    book.rating = round(sum([r.grade for r in reviews]) / len(reviews), 2)
+
+    db.session.commit()
+
+    return jsonify({'message': 'Отзыв добавлен!'}), 201
+
+
+
 
 if __name__ == '__main__':
     with app.app_context():  # Создание контекста приложения

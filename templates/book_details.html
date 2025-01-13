@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <style>
+        .rating span {
+            font-size: 2rem;
+            cursor: pointer;
+            color: gray; /* Базовый серый цвет */
+        }
+
+        /* Подсветка звёзд при наведении */
+        .rating span.hover {
+            color: gold;
+        }
+
+        /* Подсветка выбранных звёзд */
+        .rating span.selected {
+            color: gold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>{{ book.title }}</h1>
+        <p><strong>Автор:</strong> {{ book.author }}</p>
+        <p><strong>Жанр:</strong> {{ book.genre }}</p>
+        <p><strong>Средний рейтинг:</strong> 
+            {% if book.reviews %}
+                {{ book.rating | round(2) }}
+            {% else %}
+                Нет отзывов
+            {% endif %}
+        </p>
+
+        <div class="row mt-4">
+            <!-- Список отзывов -->
+            <div class="col-md-6">
+                <h2>Отзывы</h2>
+                {% if book.reviews %}
+                    <ul class="list-group">
+                        {% for review in book.reviews %}
+                            <li class="list-group-item">
+                                <p><strong>Оценка:</strong> {{ review.grade }}</p>
+                                <p>{{ review.review }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Пока отзывов нет.</p>
+                {% endif %}
+            </div>
+
+            <!-- Форма для добавления отзыва -->
+            <div class="col-md-6">
+                <h2>Добавить отзыв</h2>
+                <form id="addReviewForm">
+                    <div class="mb-3">
+                        <label for="review" class="form-label">Отзыв</label>
+                        <textarea id="review" class="form-control" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Оценка</label>
+                        <div class="rating">
+                            <span data-value="1">&#9733;</span>
+                            <span data-value="2">&#9733;</span>
+                            <span data-value="3">&#9733;</span>
+                            <span data-value="4">&#9733;</span>
+                            <span data-value="5">&#9733;</span>
+                        </div>
+                        <input type="hidden" id="grade" name="grade" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const stars = document.querySelectorAll('.rating span');
+        const gradeInput = document.getElementById('grade');
+
+        stars.forEach((star, index) => {
+            star.addEventListener('click', () => {
+                // Устанавливаем оценку в скрытое поле
+                gradeInput.value = index + 1;
+
+                // Сбрасываем подсветку у всех звёзд
+                stars.forEach(s => s.classList.remove('selected'));
+
+                // Подсвечиваем выбранные звёзды (слева направо)
+                for (let i = 0; i <= index; i++) {
+                    stars[i].classList.add('selected');
+                }
+            });
+        });
+
+        // Отправка формы
+        document.getElementById('addReviewForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const review = document.getElementById('review').value;
+            const grade = document.getElementById('grade').value;
+
+            if (!grade) {
+                alert('Пожалуйста, выберите оценку!');
+                return;
+            }
+
+            const response = await fetch('/add_review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ review, grade, id_book: {{ book.id }} })
+            });
+
+            if (response.ok) {
+                alert('Отзыв добавлен!');
+                window.location.reload();
+            } else {
+                alert('Ошибка при добавлении отзыва.');
+            }
+        });
+    </script>
+</body>
+</html>
