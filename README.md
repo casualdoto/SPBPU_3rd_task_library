@@ -20,7 +20,7 @@ shmel9va - Шмелева Мария
 
 **Репозиторий с курсовой работой**:
 
-SPBPU_3rd_task_library - https://github.com/casualdoto/SPBPU_3rd_task_library
+SPBPU_python_final_task - https://github.com/casualdoto/SPBPU_python_final_task
 
 ## Описание
 Приложение для управления списком книг, оставления отзывов и рейтингов, а также предоставления рекомендаций на основе жанров.
