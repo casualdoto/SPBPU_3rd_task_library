@@ -12,19 +12,32 @@
             cursor: pointer;
             color: gray; /* Базовый серый цвет */
         }
-
+    
         /* Подсветка звёзд при наведении */
         .rating span.hover {
             color: gold;
         }
-
+    
         /* Подсветка выбранных звёзд */
         .rating span.selected {
             color: gold;
         }
+    
+        .top-button {
+            display: flex;
+            justify-content: center; /* Горизонтальное центрирование */
+            align-items: center;    /* Вертикальное центрирование (если нужно) */
+            margin: 20px 0;         /* Добавляем отступы сверху и снизу */
+        }
     </style>
+    
 </head>
 <body>
+     <!-- Кнопка возврата на главную страницу -->
+     <div class="top-button">
+        <a href="/" class="btn btn-secondary">Вернуться на главную</a>
+    </div>
+
     <div class="container mt-5">
         <h1>{{ book.title }}</h1>
         <p><strong>Автор:</strong> {{ book.author }}</p>
