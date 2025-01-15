@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Рекомендации по жанрам</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.css">
     <style>
         .form-inline {
             display: flex;
@@ -12,7 +15,7 @@
             justify-content: space-between;
         }
 
-        .form-inline .form-select {
+        .form-inline .form-control {
             width: 70%;
         }
 
@@ -52,12 +55,7 @@
 
         <!-- Форма выбора жанра -->
         <form method="GET" action="/recommendations_page" class="form-inline">
-            <select id="genre" name="genre" class="form-select me-2">
-                <option value="">Все жанры</option>
-                {% for genre in genres %}
-                    <option value="{{ genre }}">{{ genre }}</option>
-                {% endfor %}
-            </select>
+            <input id="genre" name="genre" class="form-control me-2" placeholder="Введите жанр или выберите из списка">
             <button type="submit" class="btn btn-primary">Применить</button>
         </form>
 
@@ -81,5 +79,20 @@
             {% endif %}
         </div>
     </div>
+    <script>
+        $(function () {
+            const availableGenres = [{% for genre in genres %}"{{ genre }}",{% endfor %}];
+
+            $("#genre").autocomplete({
+                source: availableGenres,
+                minLength: 0,
+                select: function(event, ui) {
+                    $("#genre").val(ui.item.value);
+                }
+            }).on('focus', function() {
+                $(this).autocomplete("search", "");
+            });
+        });
+    </script>
 </body>
 </html>
