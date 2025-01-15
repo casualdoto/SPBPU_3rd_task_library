@@ -189,6 +189,15 @@ def add_review():
 
     return jsonify({'message': 'Отзыв добавлен!'}), 201
 
+#Получение рекомендаций
+@app.route('/recommendations_page', methods=['GET'])
+def recommendations_page():
+    genre = request.args.get('genre', None)
+    if genre:
+        recommended_books = Book.query.filter(Book.genre == genre).order_by(Book.rating.desc()).all()
+    else:
+        recommended_books = Book.query.order_by(Book.rating.desc()).all()
+    return render_template('recommendations.html', genres=GENRES, recommended_books=recommended_books)
 
 
 

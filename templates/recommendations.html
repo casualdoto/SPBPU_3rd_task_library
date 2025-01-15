@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рекомендации по жанрам</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .form-inline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-inline .form-select {
+            width: 70%;
+        }
+
+        .form-inline .btn {
+            width: 25%;
+        }
+
+        .form-select:hover {
+            background-color: #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .rating-green {
+            background-color: #d4edda;
+        }
+        .rating-yellow {
+            background-color: #fff3cd;
+        }
+        .rating-red {
+            background-color: #f8d7da;
+        }
+
+        .top-button {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Рекомендации по жанрам</h1>
+
+        <!-- Кнопка возврата на главную страницу -->
+        <div class="top-button">
+            <a href="/" class="btn btn-secondary">Вернуться на главную</a>
+        </div>
+
+        <!-- Форма выбора жанра -->
+        <form method="GET" action="/recommendations_page" class="form-inline">
+            <select id="genre" name="genre" class="form-select me-2">
+                <option value="">Все жанры</option>
+                {% for genre in genres %}
+                    <option value="{{ genre }}">{{ genre }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Применить</button>
+        </form>
+
+        <div class="mt-4">
+            <h2>Рекомендованные книги</h2>
+            {% if recommended_books %}
+            <ul class="list-group">
+                {% for book in recommended_books %}
+                <li class="list-group-item {% if book.rating > 4.5 %}rating-green{% elif book.rating > 3 %}rating-yellow{% else %}rating-red{% endif %}">
+                    <h5>
+                        <a href="/book/{{ book.id }}" class="text-decoration-none">{{ book.title }}</a>
+                    </h5>
+                    <p>Автор: {{ book.author }}</p>
+                    <p>Рейтинг: {{ book.rating | round(2) }}</p>
+                    <p>Жанр: {{ book.genre }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">Пока рекомендаций по этому жанру нет.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

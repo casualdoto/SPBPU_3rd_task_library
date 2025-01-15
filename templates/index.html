@@ -14,6 +14,12 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Рекомендации книг</h1>
+
+        <!-- Кнопка для перехода к рекомендациям -->
+        <div class="text-center mb-4">
+            <button class="btn btn-primary" onclick="window.location.href='/recommendations_page'">Увидеть рекомендации</button>
+        </div>
+
         <div class="row">
             <!-- Список книг -->
             <div class="col-md-8">
@@ -25,10 +31,10 @@
                                 <a href="/book/{{ book.id }}" class="text-decoration-none">{{ book.title }}</a>
                                 <small>({{ book.genre }})</small>
                             </h5>
-                            
+
                             <p>Автор: {{ book.author }}</p>
                             <p>
-                                <strong>Рейтинг:</strong> 
+                                <strong>Рейтинг:</strong>
                                 {% if book.reviews %}
                                     {{ book.rating | round(2) }}
                                 {% else %}
