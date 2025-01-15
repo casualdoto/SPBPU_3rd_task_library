@@ -27,21 +27,17 @@
                 <ul class="list-group">
                     {% for book in books %}
                         <li class="list-group-item">
-                            <h5>
-                                <a href="/book/{{ book.id }}" class="text-decoration-none">{{ book.title }}</a>
-                                <small>({{ book.genre }})</small>
-                            </h5>
-
+                            <h5>{{ book.title }}</h5>
                             <p>Автор: {{ book.author }}</p>
+                            <p>Жанр: {{ book.genre }}</p>
                             <p>
                                 <strong>Рейтинг:</strong>
-                                {% if book.reviews %}
+                                {% if book.rating is not none and book.rating > 0 %}
                                     {{ book.rating | round(2) }}
                                 {% else %}
                                     Нет рейтинга
                                 {% endif %}
                             </p>
-                            <button class="btn btn-danger btn-sm" onclick="deleteBook({{ book.id }})">Удалить</button>
                         </li>
                     {% endfor %}
                 </ul>

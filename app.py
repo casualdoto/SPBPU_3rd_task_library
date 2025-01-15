@@ -1,171 +1,90 @@
+import psycopg2
 from flask import Flask, request, jsonify, render_template
-from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///books.db'
-db = SQLAlchemy(app)
 
-# Модель книги
-class Book(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    author = db.Column(db.String(100), nullable=False)
-    genre = db.Column(db.String(50), nullable=False)
-    rating = db.Column(db.Float, default=0.0)
+# Конфигурация подключения к PostgreSQL
+db_config = {
+    'dbname': 'railway',
+    'user': 'postgres',
+    'password': 'VfOorDfGdOXTaLnhKWjiUEBpFneqIeeI',
+    'host': 'autorack.proxy.rlwy.net',
+    'port': '12758'
+}
 
-class BookReview(db.Model):
-    __tablename__ = 'book_reviews'  # Имя таблицы
-    id_review = db.Column(db.Integer, primary_key=True)  # Первичный ключ
-    review = db.Column(db.Text, nullable=False)  # Отзыв о книге
-    grade = db.Column(db.Float, nullable=False)  # Оценка книги
-    id_book = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)  # Внешний ключ
+def get_db_connection():
+    return psycopg2.connect(**db_config)
 
-    # Отношение между таблицами
-    book = db.relationship('Book', backref=db.backref('reviews', lazy=True))
-
+# Преобразование кортежей в словари
+def tuple_to_dict(cursor, data):
+    columns = [desc[0] for desc in cursor.description]
+    if isinstance(data, list):
+        return [dict(zip(columns, row)) for row in data]
+    if isinstance(data, tuple):
+        return dict(zip(columns, data))
+    return None
 
 # Главная страница
 @app.route('/')
 def index():
-    books = Book.query.all()
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT id, title, author, genre, COALESCE(rating, 0) AS rating FROM books")
+    books = tuple_to_dict(cursor, cursor.fetchall())
+    cursor.close()
+    connection.close()
     return render_template('index.html', books=books)
 
 # Список жанров
 GENRES = [
-    "Автобиография",
-    "Автомобили",
-    "Архитектура",
-    "Астрология",
-    "Астрономия",
-    "Аэрокосмос",
-    "Бизнес",
-    "Биография",
-    "Биология",
-    "Военная литература",
-    "Гаджеты",
-    "География",
-    "Детектив",
-    "Детская литература",
-    "Дистопия",
-    "Документальная литература",
-    "Домоводство",
-    "Драма",
-    "Живопись",
-    "Здоровье",
-    "Инженерия",
-    "Информатика",
-    "Искусство",
-    "История",
-    "Йога",
-    "Киберпанк",
-    "Кино",
-    "Классическая литература",
-    "Краеведение",
-    "Криминалистика",
-    "Кулинария",
-    "Ландшафтный дизайн",
-    "Литература на иностранных языках",
-    "Любовный роман",
-    "Магия",
-    "Маркетинг",
-    "Математика",
-    "Медитация",
-    "Мемуары",
-    "Менеджмент",
-    "Методическая литература",
-    "Механика",
-    "Мистика",
-    "Музыка",
-    "Научная литература",
-    "Научная фантастика",
-    "Подростковая литература",
-    "Политика",
-    "Постапокалипсис",
-    "Поэзия",
-    "Приключения",
-    "Программирование",
-    "Психология",
-    "Публицистика",
-    "Путеводители",
-    "Путешествия",
-    "Пьеса",
-    "Религия",
-    "Роман",
-    "Рукоделие",
-    "Саморазвитие",
-    "Сатира",
-    "Сказки",
-    "Словари",
-    "Современная проза",
-    "Спорт",
-    "Стимпанк",
-    "Сценарии",
-    "Театр",
-    "Телевидение",
-    "Темное фэнтези",
-    "Техническая литература",
-    "Триллер",
-    "Ужасы",
-    "Утопия",
-    "Учебная литература",
-    "Фантастика",
-    "Физика",
-    "Философия",
-    "Финансы",
-    "Фольклор",
-    "Фотоальбомы",
-    "Фэнтези",
-    "Фэнтези-эпос",
-    "Химия",
-    "Хобби",
-    "Шпионский роман",
-    "Эзотерика",
-    "Экономика",
-    "Энциклопедии",
-    "Энциклопедии для детей",
-    "Эпопея",
-    "Эссе",
-    "Юмор",
-    "Юриспруденция",
-    "Языки и перевод"
+    "Автобиография", "Автомобили", "Архитектура", "Астрология", "Астрономия", "Аэрокосмос", "Бизнес", "Биография",
+    "Биология", "Военная литература", "Гаджеты", "География", "Детектив", "Детская литература", "Дистопия",
+    "Документальная литература", "Домоводство", "Драма", "Живопись", "Здоровье", "Инженерия", "Информатика", "Искусство",
+    "История", "Йога", "Киберпанк", "Кино", "Классическая литература", "Краеведение", "Криминалистика", "Кулинария",
+    "Ландшафтный дизайн", "Литература на иностранных языках", "Любовный роман", "Магия", "Маркетинг", "Математика",
+    "Медитация", "Мемуары", "Менеджмент", "Методическая литература", "Механика", "Мистика", "Музыка", "Научная литература",
+    "Научная фантастика", "Подростковая литература", "Политика", "Постапокалипсис", "Поэзия", "Приключения",
+    "Программирование", "Психология", "Публицистика", "Путеводители", "Путешествия", "Пьеса", "Религия", "Роман",
+    "Рукоделие", "Саморазвитие", "Сатира", "Сказки", "Словари", "Современная проза", "Спорт", "Стимпанк", "Сценарии",
+    "Театр", "Телевидение", "Темное фэнтези", "Техническая литература", "Триллер", "Ужасы", "Утопия", "Учебная литература",
+    "Фантастика", "Физика", "Философия", "Финансы", "Фольклор", "Фотоальбомы", "Фэнтези", "Фэнтези-эпос", "Химия",
+    "Хобби", "Шпионский роман", "Эзотерика", "Экономика", "Энциклопедии", "Энциклопедии для детей", "Эпопея", "Эссе",
+    "Юмор", "Юриспруденция", "Языки и перевод"
 ]
 
-# Маршрут для получения жанров
 @app.route('/genres', methods=['GET'])
 def get_genres():
-    query = request.args.get('q', '').lower()  # Получение параметра запроса
+    query = request.args.get('q', '').lower()
     suggestions = [genre for genre in GENRES if query in genre.lower()]
     return jsonify(suggestions)
 
-
-# Добавление книги
 @app.route('/add', methods=['POST'])
 def add_book():
     data = request.json
-    new_book = Book(title=data['title'], author=data['author'], genre=data['genre'])
-    db.session.add(new_book)
-    db.session.commit()
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        """
+        INSERT INTO books (title, author, genre, rating)
+        VALUES (%s, %s, %s, %s)
+        """,
+        (data['title'], data['author'], data['genre'], 0.0)
+    )
+    connection.commit()
+    cursor.close()
+    connection.close()
     return jsonify({"message": "Книга добавлена!"}), 201
 
-# Удаление книги
 @app.route('/delete/<int:book_id>', methods=['DELETE'])
 def delete_book(book_id):
-    book = Book.query.get(book_id)
-    if book:
-        # Удаление связанных отзывов
-        BookReview.query.filter_by(id_book=book_id).delete()
-        db.session.delete(book)
-        db.session.commit()
-        return jsonify({"message": "Книга и связанные отзывы удалены!"})
-    return jsonify({"error": "Книга не найдена"}), 404
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM books WHERE id = %s", (book_id,))
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return jsonify({"message": "Книга удалена!"})
 
-# Переход в раздел информации о книге
-@app.route('/book/<int:book_id>', methods=['GET'])
-def book_details(book_id):
-    book = Book.query.get_or_404(book_id)  # Получаем книгу по ID
-    return render_template('book_details.html', book=book)
-
-# Добавление отзыва
 @app.route('/add_review', methods=['POST'])
 def add_review():
     data = request.json
@@ -173,38 +92,85 @@ def add_review():
     grade = data.get('grade')
     id_book = data.get('id_book')
 
-    # Проверка данных
-    if not review or not grade or not id_book:
-        return jsonify({'error': 'Все поля обязательны'}), 400
+    if not (review and grade and id_book):
+        return "Все поля обязательны!", 400
 
-    # Добавляем новый отзыв
-    new_review = BookReview(review=review, grade=float(grade), id_book=id_book)
-    db.session.add(new_review)
+    connection = get_db_connection()
+    cursor = connection.cursor()
 
-    # Пересчитываем средний рейтинг книги
-    book = Book.query.get(id_book)
-    reviews = BookReview.query.filter_by(id_book=id_book).all()
-    book.rating = round(sum([r.grade for r in reviews]) / len(reviews), 2)
+    # Добавление отзыва
+    cursor.execute(
+        """
+        INSERT INTO book_reviews (review, grade, id_book)
+        VALUES (%s, %s, %s)
+        """,
+        (review, grade, id_book)
+    )
 
-    db.session.commit()
+    # Пересчёт среднего рейтинга
+    cursor.execute(
+        "SELECT AVG(grade) FROM book_reviews WHERE id_book = %s", (id_book,)
+    )
+    new_rating = cursor.fetchone()[0]
 
-    return jsonify({'message': 'Отзыв добавлен!'}), 201
+    cursor.execute(
+        "UPDATE books SET rating = %s WHERE id = %s", (new_rating, id_book)
+    )
 
-#Получение рекомендаций
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return jsonify({"message": "Отзыв успешно добавлен!"}), 201
+
+
+
+@app.route('/book/<int:book_id>', methods=['GET'])
+def book_details(book_id):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    # Получаем данные о книге
+    cursor.execute("SELECT id, title, author, genre, rating FROM books WHERE id = %s", (book_id,))
+    book_data = cursor.fetchone()
+
+    # Получаем отзывы для этой книги
+    cursor.execute("SELECT review, grade FROM book_reviews WHERE id_book = %s", (book_id,))
+    reviews_data = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    if book_data:
+        book = {
+            'id': book_data[0],
+            'title': book_data[1],
+            'author': book_data[2],
+            'genre': book_data[3],
+            'rating': book_data[4],
+            'reviews': [{'review': r[0], 'grade': r[1]} for r in reviews_data]
+        }
+        return render_template('book_details.html', book=book)
+
+    return jsonify({"error": "Книга не найдена"}), 404
+
+
 @app.route('/recommendations_page', methods=['GET'])
 def recommendations_page():
     genre = request.args.get('genre', None)
+    connection = get_db_connection()
+    cursor = connection.cursor()
     if genre:
-        recommended_books = Book.query.filter(Book.genre == genre).order_by(Book.rating.desc()).all()
+        cursor.execute(
+            "SELECT id, title, author, genre, rating FROM books WHERE genre = %s ORDER BY rating DESC",
+            (genre,)
+        )
     else:
-        recommended_books = Book.query.order_by(Book.rating.desc()).all()
+        cursor.execute("SELECT id, title, author, genre, rating FROM books ORDER BY rating DESC")
+    recommended_books = tuple_to_dict(cursor, cursor.fetchall())
+    cursor.close()
+    connection.close()
     return render_template('recommendations.html', genres=GENRES, recommended_books=recommended_books)
 
-
-
 if __name__ == '__main__':
-    with app.app_context():  # Создание контекста приложения
-        db.create_all()      # Создание всех таблиц
     app.run(debug=True)
-
-

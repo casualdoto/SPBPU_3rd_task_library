@@ -126,7 +126,11 @@
             const response = await fetch('/add_review', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ review, grade, id_book: {{ book.id }} })
+                body: JSON.stringify({
+                    review,
+                    grade,
+                    id_book: {{ book.id | tojson }}
+                })
             });
 
             if (response.ok) {
