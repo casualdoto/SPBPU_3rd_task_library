@@ -152,9 +152,11 @@ def add_book():
 def delete_book(book_id):
     book = Book.query.get(book_id)
     if book:
+        # Удаление связанных отзывов
+        BookReview.query.filter_by(id_book=book_id).delete()
         db.session.delete(book)
         db.session.commit()
-        return jsonify({"message": "Книга удалена!"})
+        return jsonify({"message": "Книга и связанные отзывы удалены!"})
     return jsonify({"error": "Книга не найдена"}), 404
 
 # Переход в раздел информации о книге
